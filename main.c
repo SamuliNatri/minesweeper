@@ -76,14 +76,24 @@ void DrawEntity(entity* Entity);
 void ClearArray(entityArray* Array);
 void QueueAdd(queue* Queue, v3 Position);
 void FloodEmpty(v3 Start);
-void RevealAll();
 void CalculateNumbers();
+void RevealAll();
+void RevealNumbersAroundPosition(v3 Position);
 
 neighbors GetNeighborsByType(v3 Position, int Type);
 v3 QueuePop(queue* Queue);
 
 int QueueHasItem(queue* Queue, v3 Position);
 int AddBomb();
+
+void RevealNumbersAroundPosition(v3 Position) {
+    neighbors Neighbors = GetNeighborsByType(Position, NUMBER);
+    for(int Index = 0; Index < Neighbors.Length; ++Index) {
+        int X = Neighbors.Items[Index].X;
+        int Y = Neighbors.Items[Index].Y;
+        Entities.Items[Y * X_TILES + X].Visible = 1;
+    }
+}
 
 neighbors GetNeighborsByType(v3 Position, int Type) {
     
@@ -136,6 +146,8 @@ void FloodEmpty(v3 Start) {
     QueueAdd(&Frontier, Start);
     QueueAdd(&Reached, Start);
     
+    RevealNumbersAroundPosition(Start);
+    
     // Flood from Start and make visible
     
     while(Frontier.Length > 0) {
@@ -151,14 +163,7 @@ void FloodEmpty(v3 Start) {
                 int Y = Neighbors.Items[Index].Y;
                 Entities.Items[Y * X_TILES + X].Visible = 1;
                 
-                // Reveal numbers around the tile
-                
-                neighbors NumberNeighbors = GetNeighborsByType(Entities.Items[Y * X_TILES + X].Position, NUMBER);
-                for(int Index = 0; Index < NumberNeighbors.Length; ++Index) {
-                    int X = NumberNeighbors.Items[Index].X;
-                    int Y = NumberNeighbors.Items[Index].Y;
-                    Entities.Items[Y * X_TILES + X].Visible = 1;
-                }
+                RevealNumbersAroundPosition(Entities.Items[Y * X_TILES + X].Position);
             }
         }
     }
